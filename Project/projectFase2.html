@@ -120,8 +120,17 @@
             var mapUrl; 
             var map = THREE.ImageUtils.loadTexture(mapUrl);
             
-            // Creates a Phong material to show shading; pass in the map
-            var material = new THREE.MeshPhongMaterial({ map:map }); 
+            // Create our Earth with nice texture
+            var earthmap = "../images/earth_surface_2048.jpg";
+            var geometry = new THREE.SphereGeometry(30, 32, 32);
+            var texture = THREE.ImageUtils.loadTexture(earthmap);
+            var material = new THREE.MeshBasicMaterial( { map: texture } );
+            var earth = new THREE.Mesh( geometry, material ); 
+            
+            earth.position.x = -100;
+            earth.position.y = 20;
+            earth.position.z = -20;
+            scene.add(earth); 
             
             //Aplica escala, translacao e rotacao no objeto
             uniforms = {
