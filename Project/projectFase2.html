@@ -13,8 +13,11 @@
     <script type="x-shader/x-vertex" id="vsSpaceship">
           uniform mat4 scale;
           uniform mat4 translation;
+          uniform mat4 rotation_x;
+          uniform mat4 rotation_y;
+          uniform mat4 rotation_z;
           void main() {
-              vec4 mvPosition = viewMatrix * scale * translation * vec4(position, 1.0);
+              vec4 mvPosition = viewMatrix * scale * translation * rotation_x * rotation_y * rotation_z * vec4(position, 1.0);
               gl_Position = projectionMatrix * mvPosition;
           }
 	</script>
@@ -38,8 +41,8 @@
             float scaleY = 12.6;
             float scaleZ = 12.6;
             float rotationX = 0.0;
-            float rotationY = 0.0;
-            float rotationZ = 0.0;
+            float rotationY = -0.3;
+            float rotationZ = 0.3;
             
             // Translação
             mat4 tPos = mat4(   vec4(1.0, 0.0, 0.0, 0.0),
@@ -120,7 +123,7 @@
             // Creates a Phong material to show shading; pass in the map
             var material = new THREE.MeshPhongMaterial({ map:map }); 
             
-            //Aplica escala e translacao no objeto
+            //Aplica escala, translacao e rotacao no objeto
             uniforms = {
 				scale: {value: new THREE.Matrix4().set(25, 0, 0, 0,
                                                        0, 25, 0, 0,
@@ -129,6 +132,19 @@
                 translation: {value: new THREE.Matrix4().set(1, 0, 0, 0,
                                                              0, 1, 0, 0,
                                                              0, 0, 1, -1,
+                                                             0, 0, 0, 1)},
+                rotation_x: {value: new THREE.Matrix4().set(1, 0, 0, 0,
+                                                             0, 1, 0, 0,
+                                                             0, 0, 1, 0,
+                                                             0, 0, 0, 1)},
+                rotation_y: {value: new THREE.Matrix4().set(1, 0, 0, 0,
+                                                             0, 1, 0, 0,
+                                                             0, 0, 1, 0,
+                                                             0, 0, 0, 1)},
+                                              				// sen e cos de 15º
+                rotation_z: {value: new THREE.Matrix4().set(0.9, -0.25, 0, 0,
+                                                             0.25, 0.9, 0, 0,
+                                                             0, 0, 1, 0,
                                                              0, 0, 0, 1)}
             };
             
