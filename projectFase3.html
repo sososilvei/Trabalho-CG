@@ -80,10 +80,14 @@
     <script>
         var curvesA = [];
         var curvesB = [];
+        var curvesC = [];
         var position1 = 0;
         var position2 = 0;
+        var position3 = 0;
         var i = 0;
         var j = 0;
+        var k = 0;
+        var random;
         var flag1 = 0;
         var render      = null,
             scene       = null,
@@ -95,6 +99,7 @@
         var spaceship_obj = new THREE.Mesh;
         var craft = new THREE.Mesh;
         var scifi_fighter = new THREE.Mesh;
+        var spaceman = new THREE.Mesh;
         var aircraft = new THREE.Mesh;
         
         function onLoad()
@@ -186,7 +191,6 @@
                     object.rotation.x = 0.9;
                     craft = object;
                     scene.add( craft );
-
                 });
             });
             
@@ -206,7 +210,6 @@
                     object.rotation.z = 1.5;                    
                     scifi_fighter = object;
                     scene.add( scifi_fighter );
-
                 });
             });
             
@@ -225,7 +228,6 @@
                     object.rotation.x = 0.8;
                     aircraft = object;
                     scene.add( aircraft );
-
                 });
             });
             
@@ -244,7 +246,6 @@
                     object.rotation.x = 0.5;
                     spaceman = object;
                     scene.add( spaceman );
-
                 });
             });
             
@@ -263,7 +264,6 @@
                 lights: true,
                 side : THREE.DoubleSide
 	        });
-
             // Instantiates a loader
             var loader = new THREE.OBJLoader();
             // Loads a resource
@@ -281,7 +281,6 @@
                     scene.add( moon_obj );
                 }
             );
-
             
             //------------- Curve A (Blue) ----------------------//
             
@@ -338,24 +337,47 @@
             
             moveCurve(2);
             
+             //------------------ Curve C ----------------------//  
+            
+            testPointxC = -170;
+            testPointyC = 70;
+            testPointzC = -100;
+            control1xC = -200;
+            control1yC = 25;
+            control1zC = 0;
+            control2xC = 30;
+            control2yC = 45;
+            control2zC = 100;
+            curveC = new THREE.CubicBezierCurve3(
+                new THREE.Vector3( testPointxC, testPointyC, testPointzC ),
+                new THREE.Vector3( control1xC, control1yC, control1zC ),
+                new THREE.Vector3( control2xC, control2yC, control2zC ),
+                new THREE.Vector3( 0, 0, 150 )
+            );
+            
+            path.add(curveC);
+            
+            // Start angle and point
+            previousAngleC = getAngle( position3 );
+            previousPointC = path.getPointAt( position3 );
+            addCurve(3);
+            
+            moveCurve(3);
+            
             //---------------------------------------------------//  
             
             addMouseHandler();
             // Runs our render loop
             run();
         }
-
-        function moveCurve( curve) {
+        function moveCurve( curve ) {
         	
             if(curve == 1){
                 position1 += 0.001;
                 var pointA = path.getPointAt(position1);
-
                 craft.position.x = pointA.x;
                 craft.position.y = pointA.y;
-
                 var angleA = getAngle(position1);
-
                 previousPointA = pointA;
                 previousAngleA = angleA;
             }
@@ -363,19 +385,25 @@
             if(curve == 2){
                 position2 += 0.001;
                 var pointB = path.getPointAt(position2);
-
                 aircraft.position.x = pointB.x;
                 aircraft.position.y = pointB.y;
-
                 var angleB = getAngle(position2);
-
                 previousPointB = pointB;
                 previousAngleB = angleB;
+            }
+            
+            if(curve == 3){
+                position3 += 0.001;
+                var pointC = path.getPointAt(position3);
+                spaceman.position.x = pointC.x;
+                spaceman.position.y = pointC.y;
+                var angleC = getAngle(position3);
+                previousPointC = pointC;
+                previousAngleC = angleC;
             }
         }
         
         function getAngle( position ){
-
 		    var tangent = path.getTangent(position).normalize();
 		    angle = - Math.atan( tangent.x / tangent.y);
 		    return angle;
@@ -385,11 +413,10 @@
             
             if(curve == 1){
                 curveGeometryA = new THREE.Geometry();
-                curveGeometryA.vertices = curveA.getPoints( 50 );
+                curveGeometryA.vertices = curveA.getPoints( 300 );
                 curveMaterialA = new THREE.LineBasicMaterial( { color : 0x00ffff } );
                 curveLineA = new THREE.Line( curveGeometryA, curveMaterialA );
                 scene.add(curveLineA);
-
                 curvesA.push(curveLineA);
                 curveLineA.curve = curveA;
             }
@@ -400,14 +427,23 @@
                 curveMaterialB = new THREE.LineBasicMaterial( { color : 0xff0000 } );
                 curveLineB = new THREE.Line( curveGeometryB, curveMaterialB );
                 scene.add(curveLineB);
-
                 curvesB.push(curveLineB);
                 curveLineB.curve = curveB;
+            }
+            
+            if(curve == 3){
+                curveGeometryC = new THREE.Geometry();
+                random = Math.floor(Math.random() * (1000 - 50)) + 50;
+                curveGeometryC.vertices = curveC.getPoints( random );
+                //curveMaterialC = new THREE.LineBasicMaterial( { } );
+                curveLineC = new THREE.Line( curveGeometryC, {} );
+                scene.add(curveLineC);
+                curvesC.push(curveLineC);
+                curveLineC.curve = curveC;
             }
         }
         
         function updateCurves() {
-
             //------------- Curve A ----------------------//
             
             curveLineA.geometry.vertices = curveLineA.curve.getPoints( 300 );
@@ -447,13 +483,28 @@
             curveLineB.curve.v2.x = control2xB;
             curveLineB.curve.v2.y = control2yB;
             curveLineB.curve.v2.z = control2zB;
-
             curveLineB.geometry.vertices = curveLineB.curve.getPoints( 50 );
             aircraft.position.x = curveLineB.geometry.vertices[0].x;
             aircraft.position.y = curveLineB.geometry.vertices[0].y;
             aircraft.position.z = curveLineB.geometry.vertices[0].z;
             curveLineB.geometry.verticesNeedUpdate = true;
-
+            
+            //------------- Curve C ----------------------//
+            
+            curveLineC.geometry.vertices = curveLineC.curve.getPoints( random );
+            
+            if (k <= random)
+            {
+                spaceman.position.x = curveLineC.geometry.vertices[k].x;
+                spaceman.position.y = curveLineC.geometry.vertices[k].y;
+                spaceman.position.z = curveLineC.geometry.vertices[k].z;
+                k++;
+            }
+            
+            if (k >= random)
+                k = 0;
+            
+            curveLineC.geometry.verticesNeedUpdate = true;
         }
         
         function run() {
