@@ -23,12 +23,12 @@
         
         void main() {
             
-            float translationX = 70.0;
-            float translationY = 40.0;
-            float translationZ = 0.0;
-            float scaleX = 0.09;
-            float scaleY = 0.09;
-            float scaleZ = 0.09;
+            float translationX = 0.0;
+            float translationY = 0.0;
+            float translationZ = 150.0;
+            float scaleX = 0.2;
+            float scaleY = 0.2;
+            float scaleZ = 0.2;
             float rotationX = 0.0;
             float rotationY = 0.0;
             float rotationZ = -0.5;
@@ -82,6 +82,9 @@
         var curvesB = [];
         var position1 = 0;
         var position2 = 0;
+        var i = 0;
+        var j = 0;
+        var flag1 = 0;
         var render      = null,
             scene       = null,
             camera      = null,
@@ -89,6 +92,7 @@
         var earth;
         var cloudsMesh;
         var earthGroup;
+        var spaceship_obj = new THREE.Mesh;
         var craft = new THREE.Mesh;
         var scifi_fighter = new THREE.Mesh;
         var aircraft = new THREE.Mesh;
@@ -109,7 +113,7 @@
             
             // Puts in a camera
             camera = new THREE.PerspectiveCamera(45, container.offsetWidth / container.offsetHeight, 1, 4000);
-            camera.position.set(0, 0, 200);
+            camera.position.set(0, 0, 400);
             
             // Creates a directional light to show off the object
             var light = new THREE.DirectionalLight(0xffffff, 1.5);
@@ -132,8 +136,8 @@
             
             earth = new THREE.Mesh( geometry, material ); 
             
-            earth.position.set(0, 0, 0);
-            earth.scale.set(1.4, 1.4, 1.4);
+            earth.position.set(-170, 70, -100);
+            //earth.scale.set(1.4, 1.4, 1.4);
             earthGroup.add(earth);
           
             // Clouds
@@ -146,47 +150,15 @@
             
             var cloudsGeometry = new THREE.SphereGeometry(30.5, 32, 32);
             cloudsMesh = new THREE.Mesh( cloudsGeometry, cloudsMaterial );
-            cloudsMesh.position.set(0, 0, 0);
-            cloudsMesh.scale.set(1.4, 1.4, 1.4);
+            cloudsMesh.position.set(-170, 70, -100);
+            //cloudsMesh.scale.set(1.4, 1.4, 1.4);
             earthGroup.add(cloudsMesh);
             
             scene.add(earthGroup);
           
         
             
-            // Create a group to hold our Stars particles
-            var starsGroup = new THREE.Object3D();
-            var minDistance = 0.5;
-	        var i;
-	        
-            // Create random particle locations
-	        for ( i = 0; i < 667; i++)
-            {
-                var vector = new THREE.Vector3( (Math.random() * 2 - 1) * minDistance, 
-				    (Math.random() * 2 - 1) * minDistance, 
-				    (Math.random() * 2 - 1) * minDistance);
-            }
             
-            // Create a range of sizes and colors for the stars
-	        var starsMaterials = [];
-	        for (i = 0; i < 8; i++)
-	        {
-		        starsMaterials.push(
-				new THREE.ParticleBasicMaterial( { color: 0x101010 * (i + 1), 
-				    size: i % 2 + 1, 
-					sizeAttenuation: false } )
-				);
-	        }
-            
-            // Create several particle systems spread around in a circle, cover the sky
-	        for ( i = 0; i < 24; i ++ )
-	        {
-
-		        //var stars = new THREE.ParticleSystem( starsGeometry, starsMaterials[ i % 8 ] );
-		        //stars.rotation.y = i / (Math.PI * 2);
-		        //starsGroup.add( stars );
-
-	         }
             
             var loader = new THREE.OBJLoader();
 			loader.load('./Spaceship.obj', function(object){ //Carregando o objeto
@@ -266,7 +238,7 @@
                 loader.setMaterials( materials );
                 loader.setPath( './obj/Astronauta/' );  
                 loader.load( 'spaceman.obj', function ( object ) {
-                    object.position.set(80, 40, 0);
+                    object.position.set(20, 28, 32);
                     object.scale.set(7.2, 7.2, 7.2);
                     object.rotation.y = -2.4;
                     object.rotation.x = 0.5;
@@ -326,7 +298,7 @@
                 new THREE.Vector3( testPointxA, testPointyA, testPointzA ),
                 new THREE.Vector3( control1xA, control1yA, control1zA),
                 new THREE.Vector3( control2xA, control2yA, control2zA ),
-                new THREE.Vector3( -100, 0, 0 )
+                new THREE.Vector3( 0, 0, 160 )
             );
             
             path = new THREE.Path();
@@ -436,33 +408,21 @@
         
         function updateCurves() {
 
-            //------------- Curve A ----------------------// 
+            //------------- Curve A ----------------------//
             
-            testPointxA = testPointxA + 0.1;
-            testPointyA = testPointyA + 0.1;
-        
-            control1xA = control1xA + 0.1;
-            control1yA = control1yA + 0.1;
-            control1zA = control1zA + 0.1;
-        
-            control2xA = control2xA + 0.1;
-            control2yA = control2yA + 0.1;
-            control2zA = control2zA + 0.1;
+            curveLineA.geometry.vertices = curveLineA.curve.getPoints( 300 );
             
-            curveLineA.curve.v0.x = testPointxA;
-            curveLineA.curve.v0.y = testPointyA;
-            curveLineA.curve.v0.z = testPointzA;
-            curveLineA.curve.v1.x = control1xA;
-            curveLineA.curve.v1.y = control1yA;
-            curveLineA.curve.v1.z = control1zA;
-            curveLineA.curve.v2.x = control2xA;
-            curveLineA.curve.v2.y = control2yA;
-            curveLineA.curve.v2.z = control2zA;
-
-            curveLineA.geometry.vertices = curveLineA.curve.getPoints( 50 );
-            craft.position.x = curveLineA.geometry.vertices[0].x;
-            craft.position.y = curveLineA.geometry.vertices[0].y;
-            craft.position.z = curveLineA.geometry.vertices[0].z;
+            if (i <= 300)
+            {
+                craft.position.x = curveLineA.geometry.vertices[i].x;
+                craft.position.y = curveLineA.geometry.vertices[i].y;
+                craft.position.z = curveLineA.geometry.vertices[i].z;
+                i++;
+            }
+            
+            if (i >= 300)
+                i = 0;
+            
             curveLineA.geometry.verticesNeedUpdate = true;
             
             //------------- Curve B ----------------------// 
@@ -501,15 +461,40 @@
             // Renders the scene
             renderer.render(scene, camera);
             
+            // Earth Rotation:
             earth.rotation.y += 0.001;
             cloudsMesh.rotation.y += 0.001;
             
+            
+            // Spaceships Moves:
+            craft.rotation.y -= 0.005; 
+            aircraft.rotation.y += 0.005;
+            scifi_fighter.rotation.y += 0.005;
+            
+            //spaceship_obj.rotation.y += 0.005;
+            
+            if (!flag1)
+            {
+                spaceship_obj.position.z += 0.1;
+                spaceship_obj.position.x += 0.1;
+            }
+            else
+            {
+                spaceship_obj.position.z -= 0.1;
+                spaceship_obj.position.x -= 0.1;
+                if (spaceship_obj.position.z <= 10)
+                    flag1 = 0;
+            }
+            
+            if (spaceship_obj.position.z >= 50)
+                flag1 = 1;
+            
             if (cam_change)
             {
-                camera.position.set(0, 200, 0);
+                camera.position.set(0, 400, 0);
                 camera.rotation.x = 270 * (Math.PI / 180);
             } else {
-                camera.position.set(0, 0, 200);  
+                camera.position.set(0, 0, 400);  
                 camera.rotation.x = 360 * (Math.PI / 180);
             }
             // Asks for another frame
