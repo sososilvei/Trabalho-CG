@@ -78,32 +78,47 @@
 	</script>
     
     <script>
-        var curvesA = [];
-        var curvesB = [];
-        var curvesC = [];
-        var position1 = 0;
-        var position2 = 0;
-        var position3 = 0;
-        var i = 0;
-        var j = 0;
-        var k = 0;
-        var random;
-        var flag1 = 0;
+        var curvesA = [],
+            curvesB = [],
+            curvesC = [];
+        
+        var position1 = 0,
+            position2 = 0,
+            position3 = 0;
+        
+        var i = 0,
+            j = 0,
+            k = 0,
+            m = 0;
+        
+        var random = (Math.random() * (9) + 1),
+            flag1 = 0,
+            flag2 = 0,
+            start,
+            end;
+        
         var render      = null,
             scene       = null,
             camera      = null,
             cam_change  = false;
-        var earth;
-        var cloudsMesh;
-        var earthGroup;
-        var spaceship_obj = new THREE.Mesh;
-        var craft = new THREE.Mesh;
-        var scifi_fighter = new THREE.Mesh;
-        var spaceman = new THREE.Mesh;
-        var aircraft = new THREE.Mesh;
+        
+        var earth,
+            cloudsMesh,
+            earthGroup;
+        
+        var spaceship_obj = new THREE.Mesh,
+            craft = new THREE.Mesh,
+            scifi_fighter = new THREE.Mesh,
+            spaceman = new THREE.Mesh,
+            aircraft = new THREE.Mesh;
         
         function onLoad()
         {
+            
+            /* ==========================================================================
+             * ========================= Configurações iniciais =========================
+             * ========================================================================== */
+            
             // Grabs our container div
             var container = document.getElementById("container");
             
@@ -125,163 +140,42 @@
             light.position.set(0, 0 ,1);
             scene.add(light);
             
+            /* ==========================================================================
+             * ============================ Adiciona Objetos ============================
+             * ========================================================================== */
+            
             // Create our Earth with texture
-            earthGroup = new THREE.Object3D();
-            
-            var surfaceMap = THREE.ImageUtils.loadTexture( "../images/earth_surface_2048.jpg" );
-            var normalMap = THREE.ImageUtils.loadTexture( "../images/earth_normal_2048.jpg" );
-	        var specularMap = THREE.ImageUtils.loadTexture( "../images/earth_specular_2048.jpg" );
-            
-            var geometry = new THREE.SphereGeometry(30, 32, 32);
-            
-            var material = new THREE.MeshPhongMaterial({
-                map: surfaceMap,
-                normalMap: normalMap,
-                specularMap: specularMap});
-            
-            earth = new THREE.Mesh( geometry, material ); 
-            
-            earth.position.set(-170, 70, -100);
-            //earth.scale.set(1.4, 1.4, 1.4);
-            earthGroup.add(earth);
+            createEarth();
           
-            // Clouds
-            var cloudsMap = THREE.ImageUtils.loadTexture( "../images/earth_clouds_1024.png" );
-            var cloudsMaterial = new THREE.MeshLambertMaterial({
-                color: 0xffffff,
-                map: cloudsMap,
-                transparent:true 
-            });
+            // Create our Clouds with texture
+            createClouds();
             
-            var cloudsGeometry = new THREE.SphereGeometry(30.5, 32, 32);
-            cloudsMesh = new THREE.Mesh( cloudsGeometry, cloudsMaterial );
-            cloudsMesh.position.set(-170, 70, -100);
-            //cloudsMesh.scale.set(1.4, 1.4, 1.4);
-            earthGroup.add(cloudsMesh);
-            
+            // Add Earth ans Clouds on scene:
             scene.add(earthGroup);
-          
-        
+            
+            // Add object Spaceship on scene:
+            addSpaceship();
+            
+            // Add object craft on scene:
+            addCraft();
+            
+            // Add object SciFi-Fighter on scene:
+            addScifiFighter();
+            
+            // Add object Aircraft on scene:
+            addAircraft();
+            
+            // Add object Spaceman on scene:
+            addSpaceman();
+            
+            // Add object Moon on scene:
+            addMoon();
             
             
-            
-            var loader = new THREE.OBJLoader();
-			loader.load('./Spaceship.obj', function(object){ //Carregando o objeto
-				
-                spaceship_obj = object;
-                spaceship_obj.position.set(50, -40, 10);
-                spaceship_obj.scale.set(4.2, 4.2, 4.2);
-                spaceship_obj.rotation.y = 3.2;
-                spaceship_obj.rotation.x = 0.4;
-                scene.add( spaceship_obj );
-			});
-            
-            THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader());
-            var mtlLoader = new THREE.MTLLoader();
-            mtlLoader.setPath( './obj/craft/' );  
-            mtlLoader.load( 'craft.mtl', function( materials ) {
-                materials.preload();
-                var loader = new THREE.OBJLoader();
-                loader.setMaterials( materials );
-                loader.setPath( './obj/craft/' );  
-                loader.load( 'craft.obj', function ( object ) {
-                    object.position.set(-100, -30, 0);
-                    object.scale.set(2.2, 2.2, 2.2);
-                    object.rotation.y = 2.5;
-                    object.rotation.x = 0.9;
-                    craft = object;
-                    scene.add( craft );
-                });
-            });
-            
-            THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader());
-            var mtlLoader = new THREE.MTLLoader();
-            mtlLoader.setPath( './obj/SciFi-Fighter/' );  
-            mtlLoader.load( 'SciFi_Fighter_AK5.mtl', function( materials ) {
-                materials.preload();
-                var loader = new THREE.OBJLoader();
-                loader.setMaterials( materials );
-                loader.setPath( './obj/SciFi-Fighter/' );  
-                loader.load( 'SciFi_Fighter_AK5.obj', function ( object ) {
-                    object.position.set(-55, -50, 0);
-                    object.scale.set(0.015, 0.015, 0.015);
-                    object.rotation.y = 1;
-                    object.rotation.x = 1;
-                    object.rotation.z = 1.5;                    
-                    scifi_fighter = object;
-                    scene.add( scifi_fighter );
-                });
-            });
-            
-            THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader());
-            var mtlLoader = new THREE.MTLLoader();
-            mtlLoader.setPath( './obj/E-45-Aircraft/' );  
-            mtlLoader.load( 'E 45 Aircraft_obj.mtl', function( materials ) {
-                materials.preload();
-                var loader = new THREE.OBJLoader();
-                loader.setMaterials( materials );
-                loader.setPath( './obj/E-45-Aircraft/' );  
-                loader.load( 'E 45 Aircraft_obj.obj', function ( object ) {
-                    object.position.set(160, 28, 0);
-                    object.scale.set(4.2, 4.2, 4.2);
-                    object.rotation.y = 2.4;
-                    object.rotation.x = 0.8;
-                    aircraft = object;
-                    scene.add( aircraft );
-                });
-            });
-            
-            THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader());
-            var mtlLoader = new THREE.MTLLoader();
-            mtlLoader.setPath( './obj/Astronauta/' );  
-            mtlLoader.load( 'spaceman.mtl', function( materials ) {
-                materials.preload();
-                var loader = new THREE.OBJLoader();
-                loader.setMaterials( materials );
-                loader.setPath( './obj/Astronauta/' );  
-                loader.load( 'spaceman.obj', function ( object ) {
-                    object.position.set(20, 28, 32);
-                    object.scale.set(7.2, 7.2, 7.2);
-                    object.rotation.y = -2.4;
-                    object.rotation.x = 0.5;
-                    spaceman = object;
-                    scene.add( spaceman );
-                });
-            });
-            
-            var uniforms = ({
-                timeDelta : {type: 'f', value: 0},
-                emissive : {type: 'c', value: new THREE.Color(0x282828)},
-                specular : {type: 'c', value: new THREE.Color(0xB0B0B0)}
-            });
-            var phongShader = THREE.ShaderLib.phong;
-            var mUniforms = THREE.UniformsUtils.merge([phongShader.uniforms, uniforms]);
-            
-            var materialMoon = new THREE.ShaderMaterial( { 
-                uniforms : mUniforms,
-                vertexShader: document.getElementById('vsMoon').textContent,
-                fragmentShader: phongShader.fragmentShader,
-                lights: true,
-                side : THREE.DoubleSide
-	        });
-            // Instantiates a loader
-            var loader = new THREE.OBJLoader();
-            // Loads a resource
-            loader.load(
-                './obj/Moon.obj',
-                // Called when resource is loaded
-                function ( object ) {
-                  
-                    object.traverse(function (child) {
-                        if(child instanceof THREE.Mesh) {
-                            child.material = materialMoon;
-                        }
-                    });
-                    moon_obj = object;
-                    scene.add( moon_obj );
-                }
-            );
-            
+            /* ==========================================================================
+             * ============================ Define as curvas ============================
+             * ========================================================================== */
+
             //------------- Curve A (Blue) ----------------------//
             
             testPointxA = -150;
@@ -312,20 +206,20 @@
         
             //------------- Curve B (Red) ----------------------//  
             
-            testPointxB = 150;
-            testPointyB = 50;
+            testPointxB = 200;
+            testPointyB = 110;
             testPointzB = 0;
             control1xB = 100;
-            control1yB = 50;
-            control1zB = 0;
-            control2xB = 100;
-            control2yB = 50;
-            control2zB = 0;
+            control1yB = -150;
+            control1zB = -100;
+            control2xB = -100;
+            control2yB = -100;
+            control2zB = -100;
             curveB = new THREE.CubicBezierCurve3(
                 new THREE.Vector3( testPointxB, testPointyB, testPointzB ),
                 new THREE.Vector3( control1xB, control1yB, control1zB),
                 new THREE.Vector3( control2xB, control2yB, control2zB ),
-                new THREE.Vector3( 100, 50, 0 )
+                new THREE.Vector3( -200, -110, 0 )
             );
             
             path.add(curveB);
@@ -337,11 +231,11 @@
             
             moveCurve(2);
             
-             //------------------ Curve C ----------------------//  
+            //------------------ Curve C ----------------------//  
             
-            testPointxC = -170;
+            testPointxC = -200;
             testPointyC = 70;
-            testPointzC = -100;
+            testPointzC = -40;
             control1xC = -200;
             control1yC = 25;
             control1zC = 0;
@@ -363,6 +257,7 @@
             addCurve(3);
             
             moveCurve(3);
+            start = performance.now();
             
             //---------------------------------------------------//  
             
@@ -370,6 +265,184 @@
             // Runs our render loop
             run();
         }
+
+        function createEarth()
+        {
+            // Create our Earth with texture
+            earthGroup = new THREE.Object3D();
+
+            var surfaceMap = THREE.ImageUtils.loadTexture( "../images/earth_surface_2048.jpg" );
+            var normalMap = THREE.ImageUtils.loadTexture( "../images/earth_normal_2048.jpg" );
+            var specularMap = THREE.ImageUtils.loadTexture( "../images/earth_specular_2048.jpg" );
+
+            var geometry = new THREE.SphereGeometry(30, 32, 32);
+
+            var material = new THREE.MeshPhongMaterial({
+                map: surfaceMap,
+                normalMap: normalMap,
+                specularMap: specularMap});
+
+            earth = new THREE.Mesh( geometry, material ); 
+
+            earth.position.set(-200, 90, -100);
+            //earth.scale.set(1.4, 1.4, 1.4);
+            earthGroup.add(earth);
+        }
+        
+        function createClouds()
+        {
+            var cloudsMap = THREE.ImageUtils.loadTexture( "../images/earth_clouds_1024.png" );
+            var cloudsMaterial = new THREE.MeshLambertMaterial({
+                color: 0xffffff,
+                map: cloudsMap,
+                transparent:true 
+            });
+
+            var cloudsGeometry = new THREE.SphereGeometry(30.5, 32, 32);
+            cloudsMesh = new THREE.Mesh( cloudsGeometry, cloudsMaterial );
+            cloudsMesh.position.set(-200, 90, -100);
+            earthGroup.add(cloudsMesh);
+        }
+
+        function addSpaceship()
+        {
+            var loader = new THREE.OBJLoader();
+            loader.load('./Spaceship.obj', function(object){    
+                spaceship_obj = object;
+                spaceship_obj.position.set(50, -40, 10);
+                spaceship_obj.scale.set(4.2, 4.2, 4.2);
+                spaceship_obj.rotation.y = 3.2;
+                spaceship_obj.rotation.x = 0.4;
+                scene.add( spaceship_obj );
+            });
+        }
+        
+        function addCraft()
+        {
+            THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader());
+            var mtlLoader = new THREE.MTLLoader();
+            mtlLoader.setPath( './obj/craft/' );  
+            mtlLoader.load( 'craft.mtl', function( materials ) {
+                materials.preload();
+                var loader = new THREE.OBJLoader();
+                loader.setMaterials( materials );
+                loader.setPath( './obj/craft/' );  
+                loader.load( 'craft.obj', function ( object ) {
+                    object.position.set(-100, -30, 0);
+                    object.scale.set(2.2, 2.2, 2.2);
+                    object.rotation.y = 2.5;
+                    object.rotation.x = 0.9;
+                    craft = object;
+                    scene.add( craft );
+
+                });
+            });
+        }
+        
+        function addScifiFighter()
+        {            
+            THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader());
+            var mtlLoader = new THREE.MTLLoader();
+            mtlLoader.setPath( './obj/SciFi-Fighter/' );  
+            mtlLoader.load( 'SciFi_Fighter_AK5.mtl', function( materials ) {
+                materials.preload();
+                var loader = new THREE.OBJLoader();
+                loader.setMaterials( materials );
+                loader.setPath( './obj/SciFi-Fighter/' );  
+                loader.load( 'SciFi_Fighter_AK5.obj', function ( object ) {
+                    object.position.set(200, -50, 100);
+                    object.scale.set(0.015, 0.015, 0.015);
+                    object.rotation.y = 1;
+                    object.rotation.x = 1;
+                    object.rotation.z = 1.5;                    
+                    scifi_fighter = object;
+                    scene.add( scifi_fighter );
+
+                });
+            });
+        }
+        
+        function addAircraft()
+        {
+            THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader());
+            var mtlLoader = new THREE.MTLLoader();
+            mtlLoader.setPath( './obj/E-45-Aircraft/' );  
+            mtlLoader.load( 'E 45 Aircraft_obj.mtl', function( materials ) {
+                materials.preload();
+                var loader = new THREE.OBJLoader();
+                loader.setMaterials( materials );
+                loader.setPath( './obj/E-45-Aircraft/' );  
+                loader.load( 'E 45 Aircraft_obj.obj', function ( object ) {
+                    object.position.set(160, 28, 0);
+                    object.scale.set(4.2, 4.2, 4.2);
+                    object.rotation.y = 2.4;
+                    object.rotation.x = 0.8;
+                    aircraft = object;
+                    scene.add( aircraft );
+
+                });
+            });
+        }
+        
+        function addSpaceman()
+        {
+            THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader());
+            var mtlLoader = new THREE.MTLLoader();
+            mtlLoader.setPath( './obj/Astronauta/' );  
+            mtlLoader.load( 'spaceman.mtl', function( materials ) {
+                materials.preload();
+                var loader = new THREE.OBJLoader();
+                loader.setMaterials( materials );
+                loader.setPath( './obj/Astronauta/' );  
+                loader.load( 'spaceman.obj', function ( object ) {
+                    object.position.set(20, 28, 32);
+                    object.scale.set(7.2, 7.2, 7.2);
+                    object.rotation.y = -2.4;
+                    object.rotation.x = 0.5;
+                    spaceman = object;
+                    scene.add( spaceman );
+
+                });
+            });
+        }
+        
+        function addMoon()
+        {
+            var uniforms = ({
+                timeDelta : {type: 'f', value: 0},
+                emissive : {type: 'c', value: new THREE.Color(0x282828)},
+                specular : {type: 'c', value: new THREE.Color(0xB0B0B0)}
+            });
+            var phongShader = THREE.ShaderLib.phong;
+            var mUniforms = THREE.UniformsUtils.merge([phongShader.uniforms, uniforms]);
+            
+            var materialMoon = new THREE.ShaderMaterial( { 
+                uniforms : mUniforms,
+                vertexShader: document.getElementById('vsMoon').textContent,
+                fragmentShader: phongShader.fragmentShader,
+                lights: true,
+                side : THREE.DoubleSide
+	        });
+
+            // Instantiates a loader
+            var loader = new THREE.OBJLoader();
+            // Loads a resource
+            loader.load(
+                './obj/Moon.obj',
+                // Called when resource is loaded
+                function ( object ) {
+                  
+                    object.traverse(function (child) {
+                        if(child instanceof THREE.Mesh) {
+                            child.material = materialMoon;
+                        }
+                    });
+                    moon_obj = object;
+                    scene.add( moon_obj );
+                }
+            );
+        }
+
         function moveCurve( curve ) {
         	
             if(curve == 1){
@@ -403,13 +476,14 @@
             }
         }
         
-        function getAngle( position ){
+        function getAngle( position ) {
+
 		    var tangent = path.getTangent(position).normalize();
 		    angle = - Math.atan( tangent.x / tangent.y);
 		    return angle;
         }
         
-        function addCurve( curve ){
+        function addCurve( curve ) {
             
             if(curve == 1){
                 curveGeometryA = new THREE.Geometry();
@@ -417,24 +491,25 @@
                 curveMaterialA = new THREE.LineBasicMaterial( { color : 0x00ffff } );
                 curveLineA = new THREE.Line( curveGeometryA, curveMaterialA );
                 scene.add(curveLineA);
+
                 curvesA.push(curveLineA);
                 curveLineA.curve = curveA;
             }
             
             if(curve == 2){
                 curveGeometryB = new THREE.Geometry();
-                curveGeometryB.vertices = curveB.getPoints( 50 );
+                curveGeometryB.vertices = curveB.getPoints( 300 );
                 curveMaterialB = new THREE.LineBasicMaterial( { color : 0xff0000 } );
                 curveLineB = new THREE.Line( curveGeometryB, curveMaterialB );
                 scene.add(curveLineB);
+
                 curvesB.push(curveLineB);
                 curveLineB.curve = curveB;
             }
             
             if(curve == 3){
                 curveGeometryC = new THREE.Geometry();
-                random = Math.floor(Math.random() * (1000 - 50)) + 50;
-                curveGeometryC.vertices = curveC.getPoints( random );
+                curveGeometryC.vertices = curveC.getPoints( 2000 );
                 //curveMaterialC = new THREE.LineBasicMaterial( { } );
                 curveLineC = new THREE.Line( curveGeometryC, {} );
                 scene.add(curveLineC);
@@ -444,6 +519,7 @@
         }
         
         function updateCurves() {
+
             //------------- Curve A ----------------------//
             
             curveLineA.geometry.vertices = curveLineA.curve.getPoints( 300 );
@@ -463,48 +539,46 @@
             
             //------------- Curve B ----------------------// 
             
-            testPointxB = testPointxB - 0.1;
-            testPointyB = testPointyB - 0.1;
-        
-            control1xB = control1xB - 0.1;
-            control1yB = control1yB - 0.1;
-            control1zB = control1zB - 0.1;
-        
-            control2xB = control2xB - 0.1;
-            control2yB = control2yB - 0.1;
-            control2zB = control2zB - 0.1;
+            curveLineB.geometry.vertices = curveLineB.curve.getPoints( 300 );
             
-            curveLineB.curve.v0.x = testPointxB;
-            curveLineB.curve.v0.y = testPointyB;
-            curveLineB.curve.v0.z = testPointzB;
-            curveLineB.curve.v1.x = control1xB;
-            curveLineB.curve.v1.y = control1yB;
-            curveLineB.curve.v1.z = control1zB;
-            curveLineB.curve.v2.x = control2xB;
-            curveLineB.curve.v2.y = control2yB;
-            curveLineB.curve.v2.z = control2zB;
-            curveLineB.geometry.vertices = curveLineB.curve.getPoints( 50 );
-            aircraft.position.x = curveLineB.geometry.vertices[0].x;
-            aircraft.position.y = curveLineB.geometry.vertices[0].y;
-            aircraft.position.z = curveLineB.geometry.vertices[0].z;
+            if (j <= 300)
+            {
+                aircraft.position.x = curveLineB.geometry.vertices[j].x;
+                aircraft.position.y = curveLineB.geometry.vertices[j].y;
+                aircraft.position.z = curveLineB.geometry.vertices[j].z;
+                j++;
+            }
+            
+            if (j >= 300)
+                j = 0;
+            
             curveLineB.geometry.verticesNeedUpdate = true;
             
             //------------- Curve C ----------------------//
             
-            curveLineC.geometry.vertices = curveLineC.curve.getPoints( random );
+            curveLineC.geometry.vertices = curveLineC.curve.getPoints( 2000 );
             
-            if (k <= random)
+            if (k <= 2000)
             {
-                spaceman.position.x = curveLineC.geometry.vertices[k].x;
-                spaceman.position.y = curveLineC.geometry.vertices[k].y;
-                spaceman.position.z = curveLineC.geometry.vertices[k].z;
-                k++;
+                spaceman.position.x = curveLineC.geometry.vertices[m].x;
+                spaceman.position.y = curveLineC.geometry.vertices[m].y;
+                spaceman.position.z = curveLineC.geometry.vertices[m].z;
+                k = k + random;
+                m = Math.floor(k);
             }
             
-            if (k >= random)
+            if (k >= 2000)
+            {
+                end = performance.now();
+                alert('Tempo de chegada: ' + ((end - start) / 1000).toFixed(2));
+                start = performance.now();
+                random = (Math.random() * (9) + 1);
+                m = 0;
                 k = 0;
+            }
             
             curveLineC.geometry.verticesNeedUpdate = true;
+
         }
         
         function run() {
@@ -522,7 +596,6 @@
             aircraft.rotation.y += 0.005;
             scifi_fighter.rotation.y += 0.005;
             
-            //spaceship_obj.rotation.y += 0.005;
             
             if (!flag1)
             {
@@ -536,9 +609,25 @@
                 if (spaceship_obj.position.z <= 10)
                     flag1 = 0;
             }
-            
             if (spaceship_obj.position.z >= 50)
                 flag1 = 1;
+            
+            
+            if (!flag2)
+            {
+                scifi_fighter.position.y += 0.1;
+                scifi_fighter.position.x += 0.1;
+            }
+            else
+            {
+                scifi_fighter.position.y -= 0.1;
+                scifi_fighter.position.x -= 0.1;
+                if (scifi_fighter.position.y <= 10)
+                    flag2 = 0;
+            }
+            if (scifi_fighter.position.y >= 50)
+                flag2 = 1;
+                        
             
             if (cam_change)
             {
