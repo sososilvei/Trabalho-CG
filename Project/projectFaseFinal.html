@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="utf-8">
+<title>Welcome to Space</title>
+    
+    <link rel = "stylesheet" href = "./projectStyle.css"/>
+    <link rel="shortcut icon" type="image/png" href="./SpaceshipIcon.png"/>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/three.js/r61/three.min.js"></script>
+    <script src="../libs/three.js"></script>
+    <script src="../libs/RequestAnimationFrame.js"></script>
+    <script src="../libs/OBJLoader.js"></script>
+    <script src="../libs/MTLLoader.js"></script>
+    <script src="../libs/DDSLoader.js"></script>
+
+    <!-- Vertex shader para Moon  -->
+    <script type="x-shader/x-vertex" id="vsMoon">
+        varying mat4 mTransformation;
+        
+        varying vec3 vNormal;
+        varying vec3 vViewPosition;
+        uniform float timeDelta;
+        
+        void main() {
+            
+            float translationX = 0.0;
+            float translationY = 0.0;
+            float translationZ = 150.0;
+            float scaleX = 0.2;
+            float scaleY = 0.2;
+            float scaleZ = 0.2;
+            float rotationX = 0.0;
+            float rotationY = 0.0;
+            float rotationZ = -0.5;
+            
+            // Translação
+            
+            mat4 tPos = mat4(   vec4(1.0, 0.0, 0.0, 0.0),
+                            vec4(0.0, 1.0, 0.0, 0.0),
+                            vec4(0.0, 0.0, 1.0, 0.0),
+                            vec4(translationX, translationY, translationZ, 1.0));
+            //Rotação
+            
+                //Eixo X
+                mat4 rXPos = mat4(  vec4(1.0, 0.0, 0.0, 0.0),
+                                    vec4(0.0, cos(rotationX), sin(rotationX), 0.0),
+                                    vec4(0.0, -sin(rotationX), cos(rotationX) ,0.0),
+                                    vec4(0.0, 0.0, 0.0, 1.0));
+                //Eixo Y
+                mat4 rYPos = mat4(  vec4(cos(rotationY), 0.0, -sin(rotationY), 0.0),
+                                    vec4(0.0, 1.0, 0.0, 0.0),
+                                    vec4(sin(rotationY), 0.0, cos(rotationY), 0.0),
+                                    vec4(0.0, 0.0, 0.0, 1.0));
+                //Eixo Z
+                mat4 rZPos = mat4(  vec4(cos(rotationZ), sin(rotationZ), 0.0, 0.0),
+                                    vec4(-sin(rotationZ), cos(rotationZ), 0.0, 0.0),
+                                    vec4(0.0, 0.0, 1.0, 0.0),
+                                    vec4(0.0, 0.0, 0.0, 1.0));
+                //Escala
+                mat4 sPos = mat4(   vec4(scaleX, 0.0, 0.0, 0.0),
+                                    vec4(0.0, scaleY, 0.0, 0.0),
+                                    vec4(0.0, 0.0, scaleZ, 0.0),
+                                    vec4(0.0, 0.0, 0.0, 1.0));
+                
+            mTransformation =  tPos * rXPos * rZPos * rYPos * sPos;
+            
+            // Phong Material:
+            vec3 center = vec3(0.0, 0.0, 0.0);
+            vec3 p = position;
+            float distance = length(center - p);
+            p += sin(distance + timeDelta/1000.0)*0.5;
+            vec4 modelViewPosition = modelViewMatrix * vec4(p, 1.0);
+            vViewPosition = -modelViewPosition.xyz;
+            vNormal = normalMatrix * normal;
+            
+            gl_Position = projectionMatrix * modelViewMatrix * mTransformation * vec4( position, 1.0 );
+        }
+	</script>
+    
+    <script>
+        var curvesA = [],
+            curvesB = [],
+            curvesC = [];
+        
+        var position1 = 0,
+            position2 = 0,
+            position3 = 0;
+        
+        var i = 0,
+            j = 0,
+            k = 0,
+            m = 0;
+        
+        var random = (Math.random() * (9) + 1),
+            flag1 = 0,
+            flag2 = 0,
+            start,
+            end;
+        
+        var render      = null,
+            scene       = null,
+            camera      = null,
+            cam_change  = false;
+        
+        var earth,
+            cloudsMesh,
+            earthGroup;
+        
+        var spaceship_obj = new THREE.Mesh,
+            craft = new THREE.Mesh,
+            scifi_fighter = new THREE.Mesh,
+            spaceman = new THREE.Mesh,
+            aircraft = new THREE.Mesh;
+			
+        
+        function onLoad()
+        {
+            
+            /* ==========================================================================
+             * ========================= Configurações iniciais =========================
+             * ========================================================================== */
+            
+            // Grabs our container div
+            var container = document.getElementById("container");
+            
+            // Creates the Three.js renderer, add it to our div
+            renderer = new THREE.WebGLRenderer({antialias: true});
+            renderer.setSize(container.offsetWidth, container.offsetHeight);
+            container.appendChild(renderer.domElement);
+            
+            // Creates a new Three.js scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color( 0x000000 );
+            
+            // Puts in a camera
+            camera = new THREE.PerspectiveCamera(45, container.offsetWidth / container.offsetHeight, 1, 4000);
+            camera.position.set(0, 0, 400);
+            
+            // Creates a directional light to show off the object
+            var light = new THREE.DirectionalLight(0xffffff, 1.5);
+            light.position.set(0, 0 ,1);
+            scene.add(light);
+            
+            /* ==========================================================================
+             * ============================ Adiciona Objetos ============================
+             * ========================================================================== */
+            
+            // Create our Earth with texture
+            createEarth();
+          
+            // Create our Clouds with texture
+            createClouds();
+            
+            // Add Earth ans Clouds on scene:
+            scene.add(earthGroup);
+            
+            // Add object Spaceship on scene:
+            addSpaceship();
+            
+            // Add object craft on scene:
+            addCraft();
+            
+            // Add object SciFi-Fighter on scene:
+            addScifiFighter();
+            
+            // Add object Aircraft on scene:
+            addAircraft();
+            
+            // Add object Spaceman on scene:
+            addSpaceman();
+            
+            // Add object Moon on scene:
+            addMoon();
+					
+						//Add object SpaceSphereon scene:
+						addSpaceSphere();
+            
+            
+            /* ==========================================================================
+             * ============================ Define as curvas ============================
+             * ========================================================================== */
+
+            //---------------------- Curve A ------------------------//
+            
+            testPointxA = -150;
+            testPointyA = -50;
+            testPointzA = 0;
+            control1xA = -100;
+            control1yA = 50;
+            control1zA = 0;
+            control2xA = -100;
+            control2yA = 15;
+            control2zA = 0;
+            curveA = new THREE.CubicBezierCurve3(
+                new THREE.Vector3( testPointxA, testPointyA, testPointzA ),
+                new THREE.Vector3( control1xA, control1yA, control1zA),
+                new THREE.Vector3( control2xA, control2yA, control2zA ),
+                new THREE.Vector3( 0, 0, 120 )
+            );
+            
+            path = new THREE.Path();
+            path.add(curveA);
+            
+            // Start angle and point
+            previousAngleA = getAngle( position1 );
+            previousPointA = path.getPointAt( position1 );
+            addCurve(1);
+            
+            moveCurve(1);
+        
+            //---------------------- Curve B ------------------------//  
+            
+            testPointxB = 200;
+            testPointyB = 110;
+            testPointzB = 0;
+            control1xB = 100;
+            control1yB = -150;
+            control1zB = -100;
+            control2xB = -100;
+            control2yB = -100;
+            control2zB = -100;
+            curveB = new THREE.CubicBezierCurve3(
+                new THREE.Vector3( testPointxB, testPointyB, testPointzB ),
+                new THREE.Vector3( control1xB, control1yB, control1zB),
+                new THREE.Vector3( control2xB, control2yB, control2zB ),
+                new THREE.Vector3( -200, -110, 0 )
+            );
+            
+            path.add(curveB);
+            
+            // Start angle and point
+            previousAngleB = getAngle( position2 );
+            previousPointB = path.getPointAt( position2 );
+            addCurve(2);
+            
+            moveCurve(2);
+            
+            //------------------ Curve C ----------------------//  
+            
+            testPointxC = -200;
+            testPointyC = 70;
+            testPointzC = -40;
+            control1xC = -200;
+            control1yC = 25;
+            control1zC = 0;
+            control2xC = 30;
+            control2yC = 45;
+            control2zC = 100;
+            curveC = new THREE.CubicBezierCurve3(
+                new THREE.Vector3( testPointxC, testPointyC, testPointzC ),
+                new THREE.Vector3( control1xC, control1yC, control1zC ),
+                new THREE.Vector3( control2xC, control2yC, control2zC ),
+                new THREE.Vector3( 0, 0, 150 )
+            );
+            
+            path.add(curveC);
+            
+            // Start angle and point
+            previousAngleC = getAngle( position3 );
+            previousPointC = path.getPointAt( position3 );
+            addCurve(3);
+            
+            moveCurve(3);
+            start = performance.now();
+            
+            //---------------------------------------------------//  
+            
+            addMouseHandler();
+            // Runs our render loop
+            run();
+        }
+
+        function createEarth()
+        {
+            // Create our Earth with texture
+            earthGroup = new THREE.Object3D();
+
+            var surfaceMap = THREE.ImageUtils.loadTexture( "../images/earth_surface_2048.jpg" );
+            var normalMap = THREE.ImageUtils.loadTexture( "../images/earth_normal_2048.jpg" );
+            var specularMap = THREE.ImageUtils.loadTexture( "../images/earth_specular_2048.jpg" );
+
+            var geometry = new THREE.SphereGeometry(30, 32, 32);
+
+            var material = new THREE.MeshPhongMaterial({
+                map: surfaceMap,
+                normalMap: normalMap,
+                specularMap: specularMap});
+
+            earth = new THREE.Mesh( geometry, material ); 
+
+            earth.position.set(-200, 90, -100);
+            //earth.scale.set(1.4, 1.4, 1.4);
+            earthGroup.add(earth);
+        }
+        
+        function createClouds()
+        {
+            var cloudsMap = THREE.ImageUtils.loadTexture( "../images/earth_clouds_1024.png" );
+            var cloudsMaterial = new THREE.MeshLambertMaterial({
+                color: 0xffffff,
+                map: cloudsMap,
+                transparent:true 
+            });
+
+            var cloudsGeometry = new THREE.SphereGeometry(30.5, 32, 32);
+            cloudsMesh = new THREE.Mesh( cloudsGeometry, cloudsMaterial );
+            cloudsMesh.position.set(-200, 90, -100);
+            earthGroup.add(cloudsMesh);
+        }
+
+        function addSpaceship()
+        {
+            var loader = new THREE.OBJLoader();
+            loader.load('./Spaceship.obj', function(object){    
+                spaceship_obj = object;
+                spaceship_obj.position.set(50, -40, 10);
+                spaceship_obj.scale.set(4.2, 4.2, 4.2);
+                spaceship_obj.rotation.y = 3.2;
+                spaceship_obj.rotation.x = 0.4;
+                scene.add( spaceship_obj );
+            });
+        }
+        
+        function addCraft()
+        {
+            THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader());
+            var mtlLoader = new THREE.MTLLoader();
+            mtlLoader.setPath( './obj/craft/' );  
+            mtlLoader.load( 'craft.mtl', function( materials ) {
+                materials.preload();
+                var loader = new THREE.OBJLoader();
+                loader.setMaterials( materials );
+                loader.setPath( './obj/craft/' );  
+                loader.load( 'craft.obj', function ( object ) {
+                    object.position.set(-100, -30, 0);
+                    object.scale.set(2.2, 2.2, 2.2);
+                    object.rotation.y = 2.5;
+                    object.rotation.x = 0.9;
+                    craft = object;
+                    scene.add( craft );
+
+                });
+            });
+        }
+        
+        function addScifiFighter()
+        {            
+            THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader());
+            var mtlLoader = new THREE.MTLLoader();
+            mtlLoader.setPath( './obj/SciFi-Fighter/' );  
+            mtlLoader.load( 'SciFi_Fighter_AK5.mtl', function( materials ) {
+                materials.preload();
+                var loader = new THREE.OBJLoader();
+                loader.setMaterials( materials );
+                loader.setPath( './obj/SciFi-Fighter/' );  
+                loader.load( 'SciFi_Fighter_AK5.obj', function ( object ) {
+                    object.position.set(150, -50, 100);
+                    object.scale.set(0.015, 0.015, 0.015);
+                    object.rotation.y = 1;
+                    object.rotation.x = 1;
+                    object.rotation.z = 1.5;                    
+                    scifi_fighter = object;
+                    scene.add( scifi_fighter );
+
+                });
+            });
+        }
+        
+        function addAircraft()
+        {
+            THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader());
+            var mtlLoader = new THREE.MTLLoader();
+            mtlLoader.setPath( './obj/E-45-Aircraft/' );  
+            mtlLoader.load( 'E 45 Aircraft_obj.mtl', function( materials ) {
+                materials.preload();
+                var loader = new THREE.OBJLoader();
+                loader.setMaterials( materials );
+                loader.setPath( './obj/E-45-Aircraft/' );  
+                loader.load( 'E 45 Aircraft_obj.obj', function ( object ) {
+                    object.position.set(160, 28, 0);
+                    object.scale.set(4.2, 4.2, 4.2);
+                    object.rotation.y = 2.4;
+                    object.rotation.x = 0.8;
+                    aircraft = object;
+                    scene.add( aircraft );
+
+                });
+            });
+        }
+        
+        function addSpaceman()
+        {
+            THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader());
+            var mtlLoader = new THREE.MTLLoader();
+            mtlLoader.setPath( './obj/Astronauta/' );  
+            mtlLoader.load( 'spaceman.mtl', function( materials ) {
+                materials.preload();
+                var loader = new THREE.OBJLoader();
+                loader.setMaterials( materials );
+                loader.setPath( './obj/Astronauta/' );  
+                loader.load( 'spaceman.obj', function ( object ) {
+                    object.position.set(20, 28, 32);
+                    object.scale.set(7.2, 7.2, 7.2);
+                    object.rotation.y = -2.4;
+                    object.rotation.x = 0.5;
+                    spaceman = object;
+                    scene.add( spaceman );
+
+                });
+            });
+        }
+        
+        function addMoon()
+        {
+            var uniforms = ({
+                timeDelta : {type: 'f', value: 0},
+                emissive : {type: 'c', value: new THREE.Color(0x282828)},
+                specular : {type: 'c', value: new THREE.Color(0xB0B0B0)}
+            });
+            var phongShader = THREE.ShaderLib.phong;
+            var mUniforms = THREE.UniformsUtils.merge([phongShader.uniforms, uniforms]);
+            
+            var materialMoon = new THREE.ShaderMaterial( { 
+                uniforms : mUniforms,
+                vertexShader: document.getElementById('vsMoon').textContent,
+                fragmentShader: phongShader.fragmentShader,
+                lights: true,
+                side : THREE.DoubleSide
+	        });
+
+            // Instantiates a loader
+            var loader = new THREE.OBJLoader();
+            // Loads a resource
+            loader.load(
+                './obj/Moon.obj',
+                // Called when resource is loaded
+                function ( object ) {
+                  
+                    object.traverse(function (child) {
+                        if(child instanceof THREE.Mesh) {
+                            child.material = materialMoon;
+                        }
+                    });
+                    moon_obj = object;
+                    scene.add( moon_obj );
+                }
+            );
+        }
+			
+				function addSpaceSphere()
+				{
+					 	var starQty = 50000;
+						geometry = new THREE.SphereGeometry(1000, 100, 50);
+
+	    			materialOptions = {
+	    				size: 1.0, //I know this is the default, it's for you.  Play with it if you want.
+	    				transparency: true, 
+							opacity: 0.7
+						};
+
+						starStuff = new THREE.PointCloudMaterial(materialOptions);
+
+						// The wizard gaze became stern, his jaw set, he creates the cosmos with a wave of his arms
+
+						for (var i = 0; i < starQty; i++) {		
+
+							var starVertex = new THREE.Vector3();
+							starVertex.x = Math.random() * 2000 - 1000;
+							starVertex.y = Math.random() * 2000 - 1000;
+							starVertex.z = Math.random() * 2000 - 1000;
+
+							geometry.vertices.push(starVertex);
+
+						}
+
+						stars = new THREE.PointCloud(geometry, starStuff);
+						scene.add(stars);
+					
+				}
+
+        function moveCurve( curve ) {
+        	
+            if(curve == 1){
+                position1 += 0.001;
+                var pointA = path.getPointAt(position1);
+                craft.position.x = pointA.x;
+                craft.position.y = pointA.y;
+                var angleA = getAngle(position1);
+                previousPointA = pointA;
+                previousAngleA = angleA;
+            }
+            
+            if(curve == 2){
+                position2 += 0.001;
+                var pointB = path.getPointAt(position2);
+                aircraft.position.x = pointB.x;
+                aircraft.position.y = pointB.y;
+                var angleB = getAngle(position2);
+                previousPointB = pointB;
+                previousAngleB = angleB;
+            }
+            
+            if(curve == 3){
+                position3 += 0.001;
+                var pointC = path.getPointAt(position3);
+                spaceman.position.x = pointC.x;
+                spaceman.position.y = pointC.y;
+                var angleC = getAngle(position3);
+                previousPointC = pointC;
+                previousAngleC = angleC;
+            }
+        }
+        
+        function getAngle( position ) {
+
+		    var tangent = path.getTangent(position).normalize();
+		    angle = - Math.atan( tangent.x / tangent.y);
+		    return angle;
+        }
+        
+        function addCurve( curve ) {
+            
+            if(curve == 1){
+                curveGeometryA = new THREE.Geometry();
+                curveGeometryA.vertices = curveA.getPoints( 300 );
+                curveMaterialA = new THREE.LineBasicMaterial( { color: 0x4ddbff } );
+                curveLineA = new THREE.Line( curveGeometryA, curveMaterialA );
+                scene.add(curveLineA);
+
+                curvesA.push(curveLineA);
+                curveLineA.curve = curveA;
+            }
+            
+            if(curve == 2){
+                curveGeometryB = new THREE.Geometry();
+                curveGeometryB.vertices = curveB.getPoints( 300 );
+                curveMaterialB = new THREE.LineBasicMaterial( { color: 0x4ddbff } );
+                curveLineB = new THREE.Line( curveGeometryB, curveMaterialB );
+                scene.add(curveLineB);
+
+                curvesB.push(curveLineB);
+                curveLineB.curve = curveB;
+            }
+            
+            if(curve == 3){
+                curveGeometryC = new THREE.Geometry();
+                curveGeometryC.vertices = curveC.getPoints( 300 );
+                //curveMaterialC = new THREE.LineBasicMaterial( { color: 0x4ddbff } );
+                curveLineC = new THREE.Line( curveGeometryC, {} );
+                scene.add(curveLineC);
+							
+                curvesC.push(curveLineC);
+                curveLineC.curve = curveC;
+            }
+        }
+        
+        function updateCurves() {
+
+            //------------- Curve A ----------------------//
+            
+            curveLineA.geometry.vertices = curveLineA.curve.getPoints( 300 );
+            
+            if (i <= 300)
+            {
+                craft.position.x = curveLineA.geometry.vertices[i].x;
+                craft.position.y = curveLineA.geometry.vertices[i].y;
+                craft.position.z = curveLineA.geometry.vertices[i].z;
+                i++;
+            }
+            
+            if (i >= 300)
+                i = 0;
+            
+            curveLineA.geometry.verticesNeedUpdate = true;
+            
+            //------------- Curve B ----------------------// 
+            
+            curveLineB.geometry.vertices = curveLineB.curve.getPoints( 300 );
+            
+            if (j <= 300)
+            {
+                aircraft.position.x = curveLineB.geometry.vertices[j].x;
+                aircraft.position.y = curveLineB.geometry.vertices[j].y;
+                aircraft.position.z = curveLineB.geometry.vertices[j].z;
+                j++;
+            }
+            
+            if (j >= 300)
+                j = 0;
+            
+            curveLineB.geometry.verticesNeedUpdate = true;
+            
+            //------------- Curve C ----------------------//
+            
+            curveLineC.geometry.vertices = curveLineC.curve.getPoints( 2000 );
+            
+            if (k <= 2000)
+            {
+                spaceman.position.x = curveLineC.geometry.vertices[m].x;
+                spaceman.position.y = curveLineC.geometry.vertices[m].y;
+                spaceman.position.z = curveLineC.geometry.vertices[m].z;
+                k = k + random;
+                m = Math.floor(k);
+            }
+            
+            if (k >= 2000 && k < 3000)
+            {
+                end = performance.now();
+                alert('Insira o tempo.');
+                showButton();
+                
+                k = 3000;
+                random = (Math.random() * (9) + 1);
+                m = 0;
+            }
+            
+            curveLineC.geometry.verticesNeedUpdate = true;
+
+        }
+        
+        function run() {
+            updateCurves();
+            // Renders the scene
+            renderer.render(scene, camera);
+            
+            // Earth Rotation:
+            earth.rotation.y += 0.001;
+            cloudsMesh.rotation.y += 0.001;
+            
+            
+            // Spaceships Moves:
+            craft.rotation.y -= 0.005; 
+            aircraft.rotation.y += 0.005;
+            scifi_fighter.rotation.y += 0.005;
+            
+            
+            if (!flag1)
+            {
+                spaceship_obj.position.z += 0.1;
+                spaceship_obj.position.x += 0.1;
+            }
+            else
+            {
+                spaceship_obj.position.z -= 0.1;
+                spaceship_obj.position.x -= 0.1;
+                if (spaceship_obj.position.z <= 10)
+                    flag1 = 0;
+            }
+            if (spaceship_obj.position.z >= 50)
+                flag1 = 1;
+            
+            
+            if (!flag2)
+            {
+                scifi_fighter.position.y += 0.1;
+                scifi_fighter.position.x += 0.1;
+            }
+            else
+            {
+                scifi_fighter.position.y -= 0.1;
+                scifi_fighter.position.x -= 0.1;
+                if (scifi_fighter.position.y <= 10)
+                    flag2 = 0;
+            }
+            if (scifi_fighter.position.y >= 50)
+                flag2 = 1;
+                        
+            
+            if (cam_change)
+            {
+                camera.position.set(0, 400, 0);
+                camera.rotation.x = 270 * (Math.PI / 180);
+            } else {
+                camera.position.set(0, 0, 400);  
+                camera.rotation.x = 360 * (Math.PI / 180);
+            }
+            // Asks for another frame
+            requestAnimationFrame(run);
+        }
+        
+        function addMouseHandler() {
+            var dom = renderer.domElement;
+            dom.addEventListener('mouseup', onMouseUp, false);
+        }
+        
+        function onMouseUp () {
+            event.preventDefault();
+            cam_change = !cam_change;
+        }
+        
+        function calcular()
+        {
+            var entrada = document.getElementById("entrada").value;
+            var tempo = ((end - start) / 1000).toFixed(2);
+            var dif = Math.abs(entrada - tempo);
+         
+            var pontos = (1000 - (dif * 1000 / tempo)).toFixed(0);
+            if (pontos < 0)
+                pontos = 0;
+            
+            if (entrada <= 0)
+                pontos = 0;
+            
+            if (pontos >= 950)
+            {
+                alert('Seu chute: ' + entrada + '\nTempo de chegada: ' + tempo
+                 + '\n\nParabéns, você é o instinto do tempo!'
+                 + '\nVocê fez ' + pontos + ' pontos!'
+                 + '\n\nClique em OK para jogar novamente!');
+            }
+            
+            else
+            {
+                alert('Seu chute: ' + entrada + '\nTempo de chegada: ' + tempo
+                     + '\n\nVocê fez ' + pontos + ' pontos!' 
+                     + '\n\nClique em OK para jogar novamente!');
+            }
+            
+            k = 0;
+            document.getElementById("prompt").style.display = "none";
+            start = performance.now();
+        }
+        
+        function showButton()
+        {
+            //$("#prompt").text("Thanks");
+            document.getElementById("prompt").style.display = "block";
+        }
+        
+    </script>
+
+</head>
+    
+<body onLoad="onLoad();" style="">
+    <center><h1>Welcome to Space!</h1></center>
+    <div id="container"
+         style="width:99%; height:80%; position:absolute;">
+    </div>
+    <div id="prompt"
+        style="width:95%; height:6%; bottom:0; display:none;  position:absolute;">
+        <form method="get" action="#">
+            <input id = "entrada" type="text" style="color: black">
+            <button onclick="calcular()" style="color: black;">OK</button>
+        </form>
+    </div>
+</body>
+    
+</html>
