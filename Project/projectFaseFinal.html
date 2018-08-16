@@ -192,7 +192,7 @@
                 new THREE.Vector3( testPointxA, testPointyA, testPointzA ),
                 new THREE.Vector3( control1xA, control1yA, control1zA),
                 new THREE.Vector3( control2xA, control2yA, control2zA ),
-                new THREE.Vector3( 0, 0, 160 )
+                new THREE.Vector3( 0, 0, 120 )
             );
             
             path = new THREE.Path();
@@ -511,8 +511,8 @@
             if(curve == 3){
                 curveGeometryC = new THREE.Geometry();
                 curveGeometryC.vertices = curveC.getPoints( 300 );
-                curveMaterialC = new THREE.LineBasicMaterial( { color: 0x4ddbff } );
-                curveLineC = new THREE.Line( curveGeometryC, curveMaterialC );
+                //curveMaterialC = new THREE.LineBasicMaterial( { color: 0x4ddbff } );
+                curveLineC = new THREE.Line( curveGeometryC, {} );
                 scene.add(curveLineC);
 							
                 curvesC.push(curveLineC);
@@ -569,15 +569,15 @@
                 m = Math.floor(k);
             }
             
-            if (k >= 2000)
+            if (k >= 2000 && k < 3000)
             {
                 end = performance.now();
-                alert('Tempo de chegada: ' + ((end - start) / 1000).toFixed(2));
-                start = performance.now();
+                alert('Insira o tempo.');
+                showButton();
+                
+                k = 3000;
                 random = (Math.random() * (9) + 1);
-					
                 m = 0;
-                k = 0;
             }
             
             curveLineC.geometry.verticesNeedUpdate = true;
@@ -653,6 +653,46 @@
             event.preventDefault();
             cam_change = !cam_change;
         }
+        
+        function calcular()
+        {
+            var entrada = document.getElementById("entrada").value;
+            var tempo = ((end - start) / 1000).toFixed(2);
+            var dif = Math.abs(entrada - tempo);
+         
+            var pontos = (1000 - (dif * 1000 / tempo)).toFixed(0);
+            if (pontos < 0)
+                pontos = 0;
+            
+            if (entrada <= 0)
+                pontos = 0;
+            
+            if (pontos >= 950)
+            {
+                alert('Seu chute: ' + entrada + '\nTempo de chegada: ' + tempo
+                 + '\n\nParabéns, você é o instinto do tempo!'
+                 + '\nVocê fez ' + pontos + ' pontos!'
+                 + '\n\nClique em OK para jogar novamente!');
+            }
+            
+            else
+            {
+                alert('Seu chute: ' + entrada + '\nTempo de chegada: ' + tempo
+                     + '\n\nVocê fez ' + pontos + ' pontos!' 
+                     + '\n\nClique em OK para jogar novamente!');
+            }
+            
+            k = 0;
+            document.getElementById("prompt").style.display = "none";
+            start = performance.now();
+        }
+        
+        function showButton()
+        {
+            //$("#prompt").text("Thanks");
+            document.getElementById("prompt").style.display = "block";
+        }
+        
     </script>
 
 </head>
@@ -663,11 +703,11 @@
          style="width:99%; height:80%; position:absolute;">
     </div>
     <div id="prompt"
-        style="width:95%; height:6%; bottom:0; position:absolute;">
+        style="width:95%; height:6%; bottom:0; display:none;  position:absolute;">
         <form method="get" action="#">
-					<input type="text" style="color: black">
-					<button onclick="calcular()" style="color: black;">OK</button>
-				</form>
+            <input id = "entrada" type="text" style="color: black">
+            <button onclick="calcular()" style="color: black;">OK</button>
+        </form>
     </div>
 </body>
     
