@@ -16,66 +16,66 @@
 
     <!-- Vertex shader para Moon  -->
     <script type="x-shader/x-vertex" id="vsMoon">
-        varying mat4 mTransformation;
-        
-        varying vec3 vNormal;
-        varying vec3 vViewPosition;
-        uniform float timeDelta;
-        
-        void main() {
-            
-            float translationX = 0.0;
-            float translationY = 0.0;
-            float translationZ = 150.0;
-            float scaleX = 0.2;
-            float scaleY = 0.2;
-            float scaleZ = 0.2;
-            float rotationX = 0.0;
-            float rotationY = 0.0;
-            float rotationZ = -0.5;
-            
-            // Translação
-            
-            mat4 tPos = mat4(   vec4(1.0, 0.0, 0.0, 0.0),
-                            vec4(0.0, 1.0, 0.0, 0.0),
-                            vec4(0.0, 0.0, 1.0, 0.0),
-                            vec4(translationX, translationY, translationZ, 1.0));
-            //Rotação
-            
-                //Eixo X
-                mat4 rXPos = mat4(  vec4(1.0, 0.0, 0.0, 0.0),
-                                    vec4(0.0, cos(rotationX), sin(rotationX), 0.0),
-                                    vec4(0.0, -sin(rotationX), cos(rotationX) ,0.0),
-                                    vec4(0.0, 0.0, 0.0, 1.0));
-                //Eixo Y
-                mat4 rYPos = mat4(  vec4(cos(rotationY), 0.0, -sin(rotationY), 0.0),
-                                    vec4(0.0, 1.0, 0.0, 0.0),
-                                    vec4(sin(rotationY), 0.0, cos(rotationY), 0.0),
-                                    vec4(0.0, 0.0, 0.0, 1.0));
-                //Eixo Z
-                mat4 rZPos = mat4(  vec4(cos(rotationZ), sin(rotationZ), 0.0, 0.0),
-                                    vec4(-sin(rotationZ), cos(rotationZ), 0.0, 0.0),
-                                    vec4(0.0, 0.0, 1.0, 0.0),
-                                    vec4(0.0, 0.0, 0.0, 1.0));
-                //Escala
-                mat4 sPos = mat4(   vec4(scaleX, 0.0, 0.0, 0.0),
-                                    vec4(0.0, scaleY, 0.0, 0.0),
-                                    vec4(0.0, 0.0, scaleZ, 0.0),
-                                    vec4(0.0, 0.0, 0.0, 1.0));
-                
-            mTransformation =  tPos * rXPos * rZPos * rYPos * sPos;
-            
-            // Phong Material:
-            vec3 center = vec3(0.0, 0.0, 0.0);
-            vec3 p = position;
-            float distance = length(center - p);
-            p += sin(distance + timeDelta/1000.0)*0.5;
-            vec4 modelViewPosition = modelViewMatrix * vec4(p, 1.0);
-            vViewPosition = -modelViewPosition.xyz;
-            vNormal = normalMatrix * normal;
-            
-            gl_Position = projectionMatrix * modelViewMatrix * mTransformation * vec4( position, 1.0 );
-        }
+	varying mat4 mTransformation;
+
+	varying vec3 vNormal;
+	varying vec3 vViewPosition;
+	uniform float timeDelta;
+
+	void main() {
+
+		float translationX = 0.0;
+		float translationY = 0.0;
+		float translationZ = 150.0;
+		float scaleX = 0.2;
+		float scaleY = 0.2;
+		float scaleZ = 0.2;
+		float rotationX = 0.0;
+		float rotationY = 0.0;
+		float rotationZ = -0.5;
+
+		// Translação
+
+		mat4 tPos = mat4(   vec4(1.0, 0.0, 0.0, 0.0),
+				vec4(0.0, 1.0, 0.0, 0.0),
+				vec4(0.0, 0.0, 1.0, 0.0),
+				vec4(translationX, translationY, translationZ, 1.0));
+		//Rotação
+
+		//Eixo X
+		mat4 rXPos = mat4(  vec4(1.0, 0.0, 0.0, 0.0),
+					vec4(0.0, cos(rotationX), sin(rotationX), 0.0),
+					vec4(0.0, -sin(rotationX), cos(rotationX) ,0.0),
+					vec4(0.0, 0.0, 0.0, 1.0));
+		//Eixo Y
+		mat4 rYPos = mat4(  vec4(cos(rotationY), 0.0, -sin(rotationY), 0.0),
+					vec4(0.0, 1.0, 0.0, 0.0),
+					vec4(sin(rotationY), 0.0, cos(rotationY), 0.0),
+					vec4(0.0, 0.0, 0.0, 1.0));
+		//Eixo Z
+		mat4 rZPos = mat4(  vec4(cos(rotationZ), sin(rotationZ), 0.0, 0.0),
+					vec4(-sin(rotationZ), cos(rotationZ), 0.0, 0.0),
+					vec4(0.0, 0.0, 1.0, 0.0),
+					vec4(0.0, 0.0, 0.0, 1.0));
+		//Escala
+		mat4 sPos = mat4(   vec4(scaleX, 0.0, 0.0, 0.0),
+					vec4(0.0, scaleY, 0.0, 0.0),
+					vec4(0.0, 0.0, scaleZ, 0.0),
+					vec4(0.0, 0.0, 0.0, 1.0));
+
+		mTransformation =  tPos * rXPos * rZPos * rYPos * sPos;
+
+		// Phong Material:
+		vec3 center = vec3(0.0, 0.0, 0.0);
+		vec3 p = position;
+		float distance = length(center - p);
+		p += sin(distance + timeDelta/1000.0)*0.5;
+		vec4 modelViewPosition = modelViewMatrix * vec4(p, 1.0);
+		vViewPosition = -modelViewPosition.xyz;
+		vNormal = normalMatrix * normal;
+
+		gl_Position = projectionMatrix * modelViewMatrix * mTransformation * vec4( position, 1.0 );
+	}
 	</script>
     
     <script>
@@ -173,8 +173,8 @@
             // Add object Moon on scene:
             addMoon();
 					
-						//Add object SpaceSphereon scene:
-						addSpaceSphere();
+			//Add object SpaceSphereon scene:
+			addSpaceSphere();
             
             
             /* ==========================================================================
@@ -448,36 +448,36 @@
             );
         }
 			
-				function addSpaceSphere()
-				{
-					 	var starQty = 50000;
-						geometry = new THREE.SphereGeometry(1000, 100, 50);
+		function addSpaceSphere()
+		{
+				var starQty = 50000;
+				geometry = new THREE.SphereGeometry(1000, 100, 50);
 
-	    			materialOptions = {
-	    				size: 1.0, //I know this is the default, it's for you.  Play with it if you want.
-	    				transparency: true, 
-							opacity: 0.7
-						};
+			materialOptions = {
+				size: 1.0, //I know this is the default, it's for you.  Play with it if you want.
+				transparency: true, 
+					opacity: 0.7
+				};
 
-						starStuff = new THREE.PointCloudMaterial(materialOptions);
+				starStuff = new THREE.PointCloudMaterial(materialOptions);
 
-						// The wizard gaze became stern, his jaw set, he creates the cosmos with a wave of his arms
+				// The wizard gaze became stern, his jaw set, he creates the cosmos with a wave of his arms
 
-						for (var i = 0; i < starQty; i++) {		
+				for (var i = 0; i < starQty; i++) {		
 
-							var starVertex = new THREE.Vector3();
-							starVertex.x = Math.random() * 2000 - 1000;
-							starVertex.y = Math.random() * 2000 - 1000;
-							starVertex.z = Math.random() * 2000 - 1000;
+					var starVertex = new THREE.Vector3();
+					starVertex.x = Math.random() * 2000 - 1000;
+					starVertex.y = Math.random() * 2000 - 1000;
+					starVertex.z = Math.random() * 2000 - 1000;
 
-							geometry.vertices.push(starVertex);
+					geometry.vertices.push(starVertex);
 
-						}
-
-						stars = new THREE.PointCloud(geometry, starStuff);
-						scene.add(stars);
-					
 				}
+
+				stars = new THREE.PointCloud(geometry, starStuff);
+				scene.add(stars);
+
+		}
 
         function moveCurve( curve ) {
         	
